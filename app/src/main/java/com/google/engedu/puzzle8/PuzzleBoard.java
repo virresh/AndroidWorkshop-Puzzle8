@@ -20,6 +20,9 @@ import android.graphics.Canvas;
 import android.util.Log;
 
 import java.util.ArrayList;
+import java.util.Comparator;
+
+import static java.lang.Math.abs;
 
 
 public class PuzzleBoard {
@@ -35,6 +38,9 @@ public class PuzzleBoard {
     private PuzzleBoard previousBoard;
     private int steps;
 
+    public PuzzleBoard getParentState(){
+        return previousBoard;
+    }
     PuzzleBoard(Bitmap bitmap, int parentWidth) {
         steps=0;
         previousBoard=null;
@@ -169,7 +175,39 @@ public class PuzzleBoard {
     }
 
     public int priority() {
-        return 0;
+        //return the manhattan distance + steps
+        int x=0,y=0,mhd=0;
+        for(int i=0;i<tiles.size(); i++){
+            int thisIndex;
+            if(tiles.get(i)==null){
+                thisIndex = 9;
+            }
+            else{
+                thisIndex = tiles.get(i).getNumber();
+            }
+
+            int expX = thisIndex%NUM_TILES;
+            int expY = thisIndex/NUM_TILES;
+
+            mhd += abs(expX-x) + abs(expY-y);
+
+            x++;
+            if(x<NUM_TILES){
+                y++;
+                x=0;
+            }
+        }
+        return mhd+steps;
     }
 
+    public boolean isSameAs(PuzzleBoard p2){
+        boolean ans = true;
+        for(int i=0; i<p2.tiles.size(); i++){
+            if(p2.tiles.get(i)!=tiles.get(i)){
+                ans = false;
+                break;
+            }
+        }
+        return ans;
+    }
 }

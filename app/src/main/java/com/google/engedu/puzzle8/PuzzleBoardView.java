@@ -20,11 +20,15 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.RadialGradient;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.PriorityQueue;
 import java.util.Random;
 
 public class PuzzleBoardView extends View {
@@ -33,6 +37,12 @@ public class PuzzleBoardView extends View {
     private PuzzleBoard puzzleBoard;
     private ArrayList<PuzzleBoard> animation;
     private Random random = new Random();
+    public static Comparator<PuzzleBoard> cmp = new Comparator<PuzzleBoard>() {
+        @Override
+        public int compare(PuzzleBoard puzzleBoard, PuzzleBoard t1) {
+            return puzzleBoard.priority()-t1.priority();
+        }
+    };
 
     public PuzzleBoardView(Context context) {
         super(context);
@@ -71,8 +81,7 @@ public class PuzzleBoardView extends View {
             // Do something. Then:
             for(int k=0; k<NUM_SHUFFLE_STEPS; k++) {
                 ArrayList<PuzzleBoard> x = puzzleBoard.neighbours();
-                Random r = new Random();
-                int z = r.nextInt(x.size());
+                int z = random.nextInt(x.size());
                 puzzleBoard = x.get(z);
             }
             puzzleBoard.reset();
@@ -99,5 +108,30 @@ public class PuzzleBoardView extends View {
     }
 
     public void solve() {
+        PriorityQueue<PuzzleBoard> pq =new PriorityQueue<>(1,cmp);
+        pq.add(puzzleBoard);
+        while(!pq.isEmpty()){
+            PuzzleBoard x = pq.poll();
+            if(!x.resolved()){
+                ArrayList<PuzzleBoard> n = x.neighbours();
+                for(int i=0; i<n.size(); i++){
+                    if(!x.getParentState().isSameAs(n.get(i))){
+                        pq.add(n.get(i));
+                    }
+                }
+            }
+            else{
+                ArrayList<PuzzleBoard> solution = new ArrayList<>();
+                while(x.getParentState()!=null){
+                    solution.add(x);
+                    x = x.getParentState();
+                }
+                Collections.reverse(solution);
+                animation = (ArrayList<PuzzleBoard>) solution.clone();
+                Log.i("Solver: ","Reached here.");
+                break;
+            }
+        }
+        invalidate();
     }
 }
