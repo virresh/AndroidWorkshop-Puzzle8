@@ -122,7 +122,7 @@ public class PuzzleBoardView extends View {
             }
             else{
                 ArrayList<PuzzleBoard> solution = new ArrayList<>();
-                while(x.getParentState()!=null){
+                while(x.getParentState()!=puzzleBoard){
                     solution.add(x);
                     x = x.getParentState();
                 }
